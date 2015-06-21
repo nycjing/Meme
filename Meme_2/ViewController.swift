@@ -67,13 +67,13 @@ class ViewController: UIViewController,UITextFieldDelegate,UIImagePickerControll
         
         return cell
     }
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+   // func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         
-           let detailController = self.storyboard!.instantiateViewControllerWithIdentifier("MemeDetailViewController") as! MemeDetailViewController
-              detailController.meme = allMemes[indexPath.row]
-              self.navigationController!.pushViewController(detailController, animated: true)
-            println("You selected cell #\(indexPath.row)!")
-         }
+    //       let detailController = self.storyboard!.instantiateViewControllerWithIdentifier("MemeDetailViewController") as! MemeDetailViewController
+     //         detailController.meme = allMemes[indexPath.row]
+      //        self.navigationController!.pushViewController(detailController, animated: true)
+       //     println("You selected cell #\(indexPath.row)!")
+       //  }
         
 
     
