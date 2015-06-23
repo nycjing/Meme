@@ -15,17 +15,18 @@ class MemeDetailViewController : UIViewController {
 
     
     @IBOutlet weak var imageView: UIImageView!
-    var meme: Meme!
     
     @IBOutlet weak var label2: UILabel!
+    
+    var meme: Meme!
+    
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         self.label1.text = self.meme.topText as String
         self.label2.text = self.meme.bottomText as String
         self.tabBarController?.tabBar.hidden = true
-        let imagePath = fileInDocumentsDirectory(meme.imageName as String)
-        let image = loadImageFromPath(imagePath)
-        self.imageView!.image = image
+
+        self.imageView!.image = meme.originalimage
          }
     
     override func viewWillDisappear(animated: Bool) {

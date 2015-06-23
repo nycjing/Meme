@@ -12,36 +12,35 @@ import UIKit
 
 class MemeCollectionViewController: UIViewController, UICollectionViewDataSource {
 
-    let allMemes = Meme.allMemes
     
+    var memes: [Meme]!
     
     // MARK: Table View Data Source
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         self.tabBarController?.tabBar.hidden = false
+        let object = UIApplication.sharedApplication().delegate
+        let appDelegate = object as! AppDelegate
+        memes = appDelegate.memes
+
     }
     
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return self.allMemes.count
+        return self.memes.count
     }
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("MemeCollectionViewCell", forIndexPath: indexPath) as! MemeCollectionViewCell
-        let meme = self.allMemes[indexPath.row]
+        let meme = self.memes[indexPath.row]
         
         // Set the name and image
         
         cell.label1?.text = meme.topText as String
-        
-        let imagePath = fileInDocumentsDirectory(meme.imageName as String)
-        let image = loadImageFromPath(imagePath)
-        cell.imageView?.image = image
-
-        
+        cell.imageView?.image = meme.memedImage
         if let detailTextLabel = cell.label2 {
-            detailTextLabel.text = "Made at: \(meme.bottomText)"
+            detailTextLabel.text = meme.bottomText
         }
         
         return cell
@@ -60,21 +59,8 @@ class MemeCollectionViewController: UIViewController, UICollectionViewDataSource
     {
         
         let detailController = self.storyboard!.instantiateViewControllerWithIdentifier("MemeDetailViewController") as! MemeDetailViewController
-        detailController.meme = self.allMemes[indexPath.row]
+        detailController.meme = self.memes[indexPath.row]
         self.navigationController!.pushViewController(detailController, animated: true)
         
     }
-            func loadImageFromPath(path: String) -> UIImage? {
-            
-            let image = UIImage(contentsOfFile: path)
-            
-            if image == nil {
-                
-                println("missing image at: (path)")
-            }
-            // println("(path)")
-            return image
-            
-        }
-
 }

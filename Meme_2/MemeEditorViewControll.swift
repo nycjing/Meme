@@ -1,18 +1,18 @@
 //
-//  ViewController.swift
+//  MemeEditorViewControll.swift
 //  Meme_2
 //
-//  Created by Jing Jia on 6/18/15.
+//  Created by Jing Jia on 6/22/15.
 //  Copyright (c) 2015 Jing Jia. All rights reserved.
 //
 
 import UIKit
 
-class ViewController: UIViewController,UITextFieldDelegate,UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITableViewDataSource, UITableViewDelegate {
+class MemeEditorViewController: UIViewController,UITextFieldDelegate,UIImagePickerControllerDelegate, UINavigationControllerDelegate{
     
-
+    
     @IBOutlet weak var topText: UITextField!
-
+    
     @IBOutlet weak var bottomText: UITextField!
     @IBOutlet weak var imageView: UIImageView!
     
@@ -23,7 +23,9 @@ class ViewController: UIViewController,UITextFieldDelegate,UIImagePickerControll
         NSStrokeWidthAttributeName : 5
     ]
     
-    var allMemes : [Meme]  = [Meme]()
+    
+    //var memedImage: UIImage!
+    var memes: [Meme]!
     
     override func viewDidLoad() {
         
@@ -32,7 +34,14 @@ class ViewController: UIViewController,UITextFieldDelegate,UIImagePickerControll
         bottomText.defaultTextAttributes = memeTextAttributes
         self.bottomText.delegate=self
         self.topText.delegate=self
-      //  self.tableView.registerClass(UITableViewCell.self, forCellReuseIdentifier: "Memecell")
+           }
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        self.tabBarController?.tabBar.hidden = false
+        let object = UIApplication.sharedApplication().delegate
+        let appDelegate = object as! AppDelegate
+        memes = appDelegate.memes
+        
     }
     
     func textFieldShouldReturn(textField: UITextField) -> Bool {
@@ -40,42 +49,6 @@ class ViewController: UIViewController,UITextFieldDelegate,UIImagePickerControll
         return false
     }
     
-    
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.allMemes.count
-    }
-    
-    
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        
-        let cell = tableView.dequeueReusableCellWithIdentifier("MemeCell") as! UITableViewCell
-      
-        let meme = self.allMemes[indexPath.row]
-        cell.textLabel?.font =
-            UIFont.preferredFontForTextStyle(UIFontTextStyleHeadline)
-        cell.textLabel?.text = meme.topText as String
-        
-        let imagePath = fileInDocumentsDirectory(meme.imageName as String)
-        let image = loadImageFromPath(imagePath)
-        cell.imageView?.image = image
-        //cell.imageView?.image = UIImage(named: meme.imageName as String)
-        
-        
-        if let detailTextLabel = cell.detailTextLabel {
-            detailTextLabel.text = "Made at: \(meme.bottomText)"
-        }
-        
-        return cell
-    }
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        
-           let detailController = self.storyboard!.instantiateViewControllerWithIdentifier("MemeDetailViewController") as! MemeDetailViewController
-              detailController.meme = allMemes[indexPath.row]
-              self.navigationController!.pushViewController(detailController, animated: true)
-            println("You selected cell #\(indexPath.row)!")
-         }
-        
-
     
     @IBAction func moveKeyboard(sender: AnyObject) {
         NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("keyboardWillShow:"), name:UIKeyboardWillShowNotification, object: nil);
@@ -123,51 +96,82 @@ class ViewController: UIViewController,UITextFieldDelegate,UIImagePickerControll
         var chosenImage = info[UIImagePickerControllerOriginalImage] as! UIImage
         imageView.image=chosenImage
         imageView.contentMode = .ScaleAspectFit
-        //imagePickerView.contentMode = .ScaleAspectFill
-        self.dismissViewControllerAnimated(true, completion: nil)
+         self.dismissViewControllerAnimated(true, completion: nil)
         
     }
-
+    
     
     
     @IBAction func shareMeme(sender: AnyObject) {
-        var topTextStr:String  = topText.text!
+        var topTextStr = topText.text!
         var img: UIImage = imageView.image!
-        var bottomTextStr:String = bottomText.text!
+        var bottomTextStr = bottomText.text!
         
         
         var shareItems:Array = [topTextStr, img, bottomTextStr]
-        
+        //var shareItems:UIImage =generateMemedImage()
         let activityViewController:UIActivityViewController = UIActivityViewController(activityItems: shareItems, applicationActivities: nil)
         
         self.presentViewController(activityViewController, animated: true, completion: nil)
         
     }
     
-    @IBAction func saveMeme(sender: AnyObject){
-        
-        var img: UIImage = imageView.image!
-        
-        var myImageName: String! = String(allMemes.count)
-        //var myImageName: String! = "1"
-        let imagePath = fileInDocumentsDirectory(myImageName)
-        
-        let smlImg=resizeImage ( img, newHeight: 20.0)
-        
-        println(imagePath)
-        saveImage(smlImg, path: imagePath)
-        
-        
-      let newMeme = Meme(dictionary: [Meme.TopText : topText.text, Meme.BottomText : bottomText.text,  Meme.ImageName : myImageName] )
-          allMemes.append(newMeme)
-        
-        for d in allMemes {
-            
-            println(d.topText,"  +  ", d.imageName, "   +   ", d.bottomText)
-        }
+    @IBAction func save() {
 
-        
+        var meme=Meme(topText: topText, bottomText: bottomText, originalimage: imageView.image!, memedImage: generateMemedImage())
+        (UIApplication.sharedApplication().delegate as! AppDelegate).memes.append(meme)
+        println(memes.count)
     }
+    
+    override func prefersStatusBarHidden() -> Bool {
+        return navigationController?.navigationBarHidden == true
+    }
+
+    
+    func generateMemedImage() -> UIImage
+    {
+        navigationController?.setNavigationBarHidden(navigationController?.navigationBarHidden == false, animated: true)
+        
+        //navigationController?.setToolbarHidden(navigationController?.toolBarHidden == false, animated: true)
+        // Render view to an image
+        UIGraphicsBeginImageContext(self.view.frame.size)
+        self.view.drawViewHierarchyInRect(self.view.frame,
+            afterScreenUpdates: true)
+        let memedImage : UIImage =
+        UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        //navigationController?.setNavigationBarHidden(navigationController?.navigationBarHidden == true, animated: true)
+        
+        self.navigationController?.navigationBarHidden = false
+         
+        
+        return memedImage
+    }
+    
+   // @IBAction func saveMeme(sender: AnyObject){
+        
+     //   var img: UIImage = imageView.image!
+        
+       // var myImageName: String! = String(allMemes.count)
+        //var myImageName: String! = "1"
+      //  let imagePath = fileInDocumentsDirectory(myImageName)
+        
+      //  let smlImg=resizeImage ( img, newHeight: 20.0)
+        
+      //  println(imagePath)
+      //  saveImage(smlImg, path: imagePath)
+        
+        
+      //  let newMeme = Meme(dictionary: [Meme.TopText : topText.text, Meme.BottomText : bottomText.text,  Meme.ImageName : myImageName] )
+       // allMemes.append(newMeme)
+        
+       // for d in allMemes {
+            
+         //   println(d.topText,"  +  ", d.imageName, "   +   ", d.bottomText)
+       // }
+        
+        
+    //}
     
     func resizeImage(image: UIImage, newHeight: CGFloat) -> UIImage {
         
@@ -189,7 +193,7 @@ class ViewController: UIViewController,UITextFieldDelegate,UIImagePickerControll
         
     }
     
-   
+    
     func loadImageFromPath(path: String) -> UIImage? {
         
         let image = UIImage(contentsOfFile: path)
@@ -211,6 +215,6 @@ class ViewController: UIViewController,UITextFieldDelegate,UIImagePickerControll
     func fileInDocumentsDirectory(filename: String) -> String {
         return documentsDirectory().stringByAppendingPathComponent(filename)
     }
-
+    
 }
 
